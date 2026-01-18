@@ -17,7 +17,7 @@
 ## ⚙️ 如何配置（两个关键步骤）
 
 你的配置信息通过两种方式管理：
-1.  **`.env` 文件**：用于本地测试和存放非敏感配置（如关键词）。
+1.  **`.env` 文件**：用于更改检索关键词。
 2.  **GitHub Secrets**：用于云端安全运行，存放敏感信息（如邮箱密码）。
 
 ### 第一步：配置 `.env` 文件（用于修改关键词和基础设置）
@@ -25,20 +25,10 @@
 在项目根目录创建或修改 `.env` 文件，它是你所有配置的入口。
 
 ```ini
-# ============ 【必填】邮箱配置（用于本地测试）============
-# 你的QQ邮箱地址
-EMAIL_SENDER=your_email@qq.com
-# 你的QQ邮箱16位SMTP授权码（不是登录密码）
-EMAIL_PASSWORD=your_16_digit_auth_code
-# 收件人邮箱（多个邮箱用英文分号 ; 隔开）
-RECIPIENT_EMAIL=receiver1@example.com;receiver2@example.com
-
 # ============ 【必改】Arxiv 搜索配置 ============
 # 搜索关键词，用英文逗号分隔。例如，想同时监控“量子计算”和“超导”
-SEARCH_KEYWORDS=Rydberg atom, Rydberg state, 里德堡原子
+SEARCH_KEYWORDS=Rydberg atom, Rydberg state, Rydberg excitations
 
 # ============ 【选填】其他运行参数 ============
 # 每次搜索返回的最大论文数量
 MAX_RESULTS=20
-# 程序运行时区（保持 Asia/Shanghai 即可）
-TZ=Asia/Shanghai
