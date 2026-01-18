@@ -27,12 +27,13 @@
 ```ini
 # ============ 【必改】Arxiv 搜索配置 ============
 # 搜索关键词，用英文逗号分隔。例如，想同时监控“量子计算”和“超导”
-SEARCH_KEYWORDS=Rydberg atom, Rydberg state, Rydberg excitations
+SEARCH_KEYWORDS=Rydberg atom,Rydberg state,Rydberg excitation
 
 # ============ 【选填】其他运行参数 ============
 # 每次搜索返回的最大论文数量
 MAX_RESULTS=20
 ```
+
 **修改说明**：
 *   **改关键词**：直接修改 `SEARCH_KEYWORDS` 变量的值即可。关键词是论文摘要中出现的术语，逗号分隔表示“或”的关系。
 *   **`.env` 仅用于本地**：此文件**切勿上传到GitHub**。在云端运行时，邮箱信息需通过下一步的 Secrets 配置。
