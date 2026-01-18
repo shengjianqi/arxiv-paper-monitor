@@ -40,7 +40,7 @@ MAX_RESULTS=20
 1.  进入你的 GitHub 仓库页面。
 2.  点击顶部的 **`Settings`** 选项卡。
 3.  在左侧边栏找到 **`Secrets and variables`** -> **`Actions`**。
-4.  点击 **`New repository secret`** 按钮，逐个添加以下三个密钥（与 `.env` 中的对应）：
+4.  点击 **`New repository secret`** 按钮，逐个添加以下三个密钥（必须添加！）：
     *   **`Name`**: `EMAIL_SENDER` -> `Value`: 你的QQ邮箱
     *   **`Name`**: `EMAIL_PASSWORD` -> `Value`: 你的QQ邮箱16位授权码
     *   **`Name`**: `RECIPIENT_EMAIL` -> `Value`: 收件邮箱（多个用分号 `;` 隔开）
