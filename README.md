@@ -8,7 +8,7 @@
 
 *   **定时抓取**：每天在指定时间自动查询 arXiv。
 *   **邮件推送**：将摘要结果（无论文时发送通知）发送到你的邮箱。
-*   **灵活配置**：通过 `.env` 文件和 GitHub Secrets 轻松修改所有参数。
+*   **灵活配置**：通过 `.env` 文件和 GitHub Secrets 轻松修改基本查询参数参数。
 *   **无需运维**：基于 GitHub Actions，零服务器成本。
 
 ---
@@ -115,8 +115,7 @@ A：请按顺序检查：
 **Q：定时任务到点没有运行？**
 A：
 1.  确认 `.github/workflows/arxiv_daily.yml` 文件已成功提交。
-2.  在 `Actions` 页面，点击工作流名称，查看右侧是否显示 **`This workflow has a schedule event trigger...`** 及下次运行时间。
-3.  GitHub Actions 的定时触发可能有几分钟延迟。
+2.  GitHub Actions 的定时触发可能有几分钟延迟。
 
 **Q：如何修改搜索的关键词？**
 A：直接修改项目根目录下 `.env` 文件中的 **`SEARCH_KEYWORDS`** 变量值，用英文逗号分隔多个关键词。此修改主要影响本地运行。若需云端生效，可考虑将关键词也设为 Secret，或在代码中直接修改 `config.py`。
@@ -126,6 +125,6 @@ A：可以。在 `SEARCH_KEYWORDS` 中用逗号添加更多关键词即可，例
 
 ---
 
-## 📄 许可证
+## 📄 许可证与AI声明
 
-本项目采用 MIT 许可证。
+本项目由DS反复迭代约两小时完成，本项目采用 MIT 许可证。
