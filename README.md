@@ -93,7 +93,7 @@ arxiv-paper-digest/
 ├── arxiv_fetcher.py  # 论文抓取与摘要模块
 ├── email_sender.py   # 邮件发送模块
 ├── config.py             # 配置加载模块
-├── .env                  # 本地配置文件（需自行创建，不上传）
+├── .env                  # 检索模块
 ├── requirements.txt      # Python 依赖列表
 └── README.md             # 本说明文档
 ```
