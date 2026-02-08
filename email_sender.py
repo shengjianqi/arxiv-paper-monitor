@@ -18,7 +18,7 @@ class EmailSender:
         current_date = datetime.now().strftime('%Y-%m-%d')
         
         try:
-            subject = f"Arxiv里德堡原子论文摘要 - {current_date}"
+            subject = f"Arxiv量子论文摘要 - {current_date}"
             
             if papers:
                 # 有论文的情况
@@ -207,7 +207,7 @@ class EmailSender:
         html += """
             <hr>
             <p style="color: #95a5a6; font-size: 12px;">
-                此邮件由Arxiv自动摘要系统生成 | 关键词: 里德堡原子, Rydberg atom
+                此邮件由Arxiv自动摘要系统生成 | 关键词: Aperture synthesis, Quantum astronomy, Quantum imaging, quantum correlation, Quantum foundations, Quantum Information
             </p>
         </body>
         </html>
