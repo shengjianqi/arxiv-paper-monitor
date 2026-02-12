@@ -1,4 +1,8 @@
+
 from arxiv_fetcher import ArxivFetcher
+from prl_fetcher import PRLFetcher
+from config import Config
+
 
 class UnifiedPaperFetcher:
     def __init__(self):
