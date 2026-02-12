@@ -5,7 +5,8 @@ from datetime import datetime
 import logging
 
 from config import Config
-from arxiv_fetcher import ArxivFetcher
+#from arxiv_fetcher import ArxivFetcher
+from unified_fetcher import UnifiedPaperFetcher
 from email_sender import EmailSender
 
 # 配置日志
