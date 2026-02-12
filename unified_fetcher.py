@@ -19,3 +19,5 @@ class UnifiedPaperFetcher:
                 unique.append(p)
 
         return unique
+    def generate_summary(self, paper):
+        return self.arxiv.generate_summary(paper)
