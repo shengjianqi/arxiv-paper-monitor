@@ -21,8 +21,8 @@ logger = logging.getLogger(__name__)
 
 class ArxivDailyDigest:
     def __init__(self):
-        #self.fetcher = ArxivFetcher()
-        self.fetcher = UnifiedPaperFetcher()
+        self.fetcher = ArxivFetcher()
+        #self.fetcher = UnifiedPaperFetcher()
         self.email_sender = EmailSender()
         
     def run(self, test_mode=False):
