@@ -1,3 +1,5 @@
+from arxiv_fetcher import ArxivFetcher
+
 class UnifiedPaperFetcher:
     def __init__(self):
         self.arxiv = ArxivFetcher()
