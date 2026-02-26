@@ -2,7 +2,6 @@
 
 import time
 import openai
-from openai.error import RateLimitError, APIError, Timeout
 from translator.llm_translator import AcademicTranslator
 from translator.email_builder import TranslationEmailBuilder
 
@@ -21,9 +20,9 @@ def safe_translate(messages):
                 messages=messages
             )
             return response.choices[0].message.content
-        except (RateLimitError, APIError, Timeout) as e:
+        except openai.error.OpenAIError as e:  # 新版统一异常
             wait = 2 ** retries
-            print(f"Rate limit/API error: {e}, retrying in {wait}s...")
+            print(f"OpenAI API error: {e}, retrying in {wait}s...")
             time.sleep(wait)
             retries += 1
     raise Exception("Exceeded retry limit")
