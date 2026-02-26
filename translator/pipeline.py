@@ -15,7 +15,6 @@ def safe_translate(messages, model="gpt-3.5-turbo", max_retries=5):
                 model=model,
                 messages=messages
             )
-            # 返回生成的内容
             return response.choices[0].message.content.strip()
         except openai.error.RateLimitError:
             wait = 2 ** retries
@@ -39,22 +38,14 @@ def safe_translate(messages, model="gpt-3.5-turbo", max_retries=5):
 # ----------------------------
 class TranslationPipeline:
 
-    def __init__(self):
+    def __init__(self, api_key: str):
+        """
+        api_key: OpenAI API Key
+        """
+        openai.api_key = api_key
         self.builder = TranslationEmailBuilder()
 
     def process(self, papers_raw):
-        """
-        papers_raw: 来自 arxiv 抓取模块的数据
-        结构示例:
-        [
-            {
-                "title": "...",
-                "summary": "...",
-                "link": "https://arxiv.org/abs/xxxx"
-            }
-        ]
-        """
-
         results = []
 
         for p in papers_raw:
@@ -79,6 +70,5 @@ class TranslationPipeline:
                 "url": p.get("link", "")
             })
 
-        # 构建邮件内容
         email_body = self.builder.build(results)
         return email_body
