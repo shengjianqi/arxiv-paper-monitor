@@ -9,7 +9,8 @@ class AcademicTranslator:
         self.model = model
 
     def translate(self, text: str) -> str:
-        if not text or not text.strip():
+        """单条文本翻译"""
+        if not text or not isinstance(text, str) or not text.strip():
             return ""
 
         prompt = f"""
@@ -42,7 +43,7 @@ Text:
             return "[Translation Failed]"
 
     def safe_translate(self, text: str, sleep=0.5):
-        """防止速率限制"""
+        """带延时的安全翻译，防止触发速率限制"""
         result = self.translate(text)
         time.sleep(sleep)
         return result
