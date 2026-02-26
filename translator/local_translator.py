@@ -11,7 +11,6 @@ class AcademicTranslator:
     def translate(self, text: str) -> str:
         if not text or not text.strip():
             return ""
-
         lines = text.split("\n")
         translations = []
         for line in lines:
