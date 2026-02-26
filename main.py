@@ -23,62 +23,63 @@ class ArxivDailyDigest:
         self.fetcher = ArxivFetcher()
         self.email_sender = EmailSender()
         
-    def run(self, test_mode=False):
-        """运行一次任务"""
-        logger.info("=" * 60)
-        logger.info(f"开始执行Arxiv论文抓取任务 - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-        
-        try:
-            # 1. 获取论文
-            days_back = 0 if test_mode else 1
-            papers = self.fetcher.fetch_recent_papers(days_back=days_back)
-            
-            # 2. 生成摘要
-            summaries = []
+def run(self, test_mode=False):
+    """运行一次任务"""
+    logger.info("=" * 60)
+    logger.info(f"开始执行Arxiv论文抓取任务 - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+
+    try:
+        # 1. 获取论文
+        days_back = 0 if test_mode else 1
+        papers = self.fetcher.fetch_recent_papers(days_back=days_back)
+
+        # 2. 生成摘要
+        summaries = []
+        if papers:
+            summaries = [self.fetcher.generate_summary(paper) for paper in papers]
+            logger.info(f"找到 {len(papers)} 篇相关论文")
+        else:
+            logger.info("今日没有找到相关论文，将发送『无新论文』通知")
+
+        # 3. 发送英文摘要邮件
+        success = self.email_sender.send_digest(papers, summaries)
+
+        if success:
             if papers:
-                summaries = [self.fetcher.generate_summary(paper) for paper in papers]
-                logger.info(f"找到 {len(papers)} 篇相关论文")
+                logger.info(f"✅ 英文摘要邮件发送成功：{len(papers)} 篇论文")
             else:
-                logger.info("今日没有找到相关论文，将发送『无新论文』通知")
-            
-            # 3. 总是发送邮件（无论有无论文）
-            success = self.email_sender.send_digest(papers, summaries)
-            
-            if success:
-                if papers:
-                    logger.info(f"✅ 任务完成！成功发送 {len(papers)} 篇论文摘要")
-                else:
-                    logger.info("✅ 任务完成！已发送『今日无新论文』通知")
-                      # ===== 新增：发送中文翻译邮件 =====
-          if papers:
-            try:
-              logger.info("📘 开始生成中文翻译邮件...")
+                logger.info("✅ 已发送『今日无新论文』英文通知")
 
-              from translator.pipeline import TranslationPipeline
-              pipeline = TranslationPipeline(api_key=Config.OPENAI_API_KEY)
+            # ===== 新增：发送中文翻译邮件 =====
+            if papers:
+                try:
+                    logger.info("📘 开始生成中文翻译邮件...")
 
-              translated_email_body = pipeline.process(papers)
+                    from translator.pipeline import TranslationPipeline
+                    pipeline = TranslationPipeline(api_key=Config.OPENAI_API_KEY)
 
-              zh_success = self.email_sender.send_email(
-                subject="arXiv Daily Digest — 中文翻译版",
-                body=translated_email_body
-              )
+                    translated_email_body = pipeline.process(papers)
 
-              if zh_success:
-                logger.info("✅ 中文翻译邮件发送成功")
-              else:
-                logger.error("❌ 中文翻译邮件发送失败")
+                    zh_success = self.email_sender.send_email(
+                        subject="arXiv Daily Digest — 中文翻译版",
+                        body=translated_email_body
+                    )
 
-        except Exception as e:
-            logger.exception(f"❌ 中文翻译邮件处理异常: {e}")
+                    if zh_success:
+                        logger.info("✅ 中文翻译邮件发送成功")
+                    else:
+                        logger.error("❌ 中文翻译邮件发送失败")
 
-            else:
-                logger.error("邮件发送失败")
-                
-        except Exception as e:
-            logger.exception(f"任务执行失败: {e}")
-        
-        logger.info("=" * 60)
+                except Exception as e:
+                    logger.exception(f"❌ 中文翻译邮件处理异常: {e}")
+
+        else:
+            logger.error("❌ 英文摘要邮件发送失败")
+
+    except Exception as e:
+        logger.exception(f"任务执行失败: {e}")
+
+    logger.info("=" * 60)
     
     def run_once(self, test_mode=False):
         """
