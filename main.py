@@ -49,6 +49,29 @@ class ArxivDailyDigest:
                     logger.info(f"✅ 任务完成！成功发送 {len(papers)} 篇论文摘要")
                 else:
                     logger.info("✅ 任务完成！已发送『今日无新论文』通知")
+                      # ===== 新增：发送中文翻译邮件 =====
+          if papers:
+            try:
+              logger.info("📘 开始生成中文翻译邮件...")
+
+              from translator.pipeline import TranslationPipeline
+              pipeline = TranslationPipeline(api_key=Config.OPENAI_API_KEY)
+
+              translated_email_body = pipeline.process(papers)
+
+              zh_success = self.email_sender.send_email(
+                subject="arXiv Daily Digest — 中文翻译版",
+                body=translated_email_body
+              )
+
+              if zh_success:
+                logger.info("✅ 中文翻译邮件发送成功")
+              else:
+                logger.error("❌ 中文翻译邮件发送失败")
+
+        except Exception as e:
+            logger.exception(f"❌ 中文翻译邮件处理异常: {e}")
+
             else:
                 logger.error("邮件发送失败")
                 
