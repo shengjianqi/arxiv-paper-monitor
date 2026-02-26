@@ -6,6 +6,18 @@ from config import Config
 from arxiv_fetcher import ArxivFetcher
 from email_sender import EmailSender
 
+from translator.pipeline import TranslationPipeline
+from config import Config
+
+def run():
+    papers = fetch_papers()
+    pipeline = TranslationPipeline()  # 不再传 api_key
+    translated_body = pipeline.process(papers)
+    print(translated_body)
+
+if __name__ == "__main__":
+    run()
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
