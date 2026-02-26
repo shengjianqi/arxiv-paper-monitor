@@ -1,15 +1,15 @@
 # translator/llm_translator.py
-
 from openai import OpenAI
 import time
+import os
 
 class AcademicTranslator:
-    def __init__(self, api_key, model="gpt-4.1-mini"):
+    def __init__(self, model="gpt-3.5-turbo"):
+        api_key = os.getenv("OPENAI_API_KEY")
         self.client = OpenAI(api_key=api_key)
         self.model = model
 
     def translate(self, text: str) -> str:
-        """单条文本翻译"""
         if not text or not isinstance(text, str) or not text.strip():
             return ""
 
@@ -42,8 +42,8 @@ Text:
             print(f"[Translator Error] {e}")
             return "[Translation Failed]"
 
-    def safe_translate(self, text: str, sleep=0.5):
-        """带延时的安全翻译，防止触发速率限制"""
+    def safe_translate(self, text: str, sleep=0.5) -> str:
+        """防止速率限制"""
         result = self.translate(text)
         time.sleep(sleep)
         return result
