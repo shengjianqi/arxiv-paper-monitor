@@ -88,7 +88,7 @@ def run(self, test_mode=False):
         """
         logger.info("🚀 启动单次任务模式（适配GitHub Actions）")
         self.run(test_mode=test_mode)
-        logger.info("📤 单次任务执行完毕，进程将退出")info("📤 单次任务执行完毕，进程将退出")
+        logger.info("📤 单次任务执行完毕，进程将退出")
 
 def main():
     """主函数 - 根据环境变量决定运行模式"""
