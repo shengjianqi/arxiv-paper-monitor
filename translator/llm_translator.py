@@ -1,7 +1,10 @@
 # translator/llm_translator.py
 from openai import OpenAI
-import time
 import os
+import time
+import logging
+
+logger = logging.getLogger(__name__)
 
 class AcademicTranslator:
     def __init__(self, model="gpt-3.5-turbo"):
@@ -27,7 +30,6 @@ Rules:
 Text:
 {text}
 """
-
         try:
             resp = self.client.chat.completions.create(
                 model=self.model,
@@ -39,11 +41,28 @@ Text:
             )
             return resp.choices[0].message.content.strip()
         except Exception as e:
-            print(f"[Translator Error] {e}")
+            logger.error(f"[Translator Error] {e}")
             return "[Translation Failed]"
 
-    def safe_translate(self, text: str, sleep=0.5) -> str:
-        """防止速率限制"""
-        result = self.translate(text)
-        time.sleep(sleep)
-        return result
+    def safe_translate(self, text: str, max_retries=5, initial_wait=1):
+        """带指数退避的安全翻译"""
+        retry = 0
+        wait = initial_wait
+
+        while retry < max_retries:
+            try:
+                return self.translate(text)
+            except Exception as e:
+                msg = str(e)
+                # 检测是否为速率限制（HTTP 429）
+                if "429" in msg or "RateLimit" in msg:
+                    retry += 1
+                    logger.warning(f"⚠️ 遇到速率限制，等待 {wait} 秒重试 ({retry}/{max_retries})")
+                    time.sleep(wait)
+                    wait *= 2  # 指数退避
+                else:
+                    logger.error(f"❌ 翻译失败: {e}")
+                    return "[Translation Failed]"
+
+        logger.error("❌ 多次重试后翻译仍失败")
+        return "[Translation Failed]"
