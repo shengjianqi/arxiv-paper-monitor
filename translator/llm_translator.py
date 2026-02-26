@@ -2,17 +2,22 @@
 from openai import OpenAI
 import os
 import time
-import logging
-
-logger = logging.getLogger(__name__)
 
 class AcademicTranslator:
     def __init__(self, model="gpt-3.5-turbo"):
+        """
+        初始化翻译器，从环境变量读取 OPENAI_API_KEY
+        """
         api_key = os.getenv("OPENAI_API_KEY")
+        if not api_key:
+            raise ValueError("环境变量 OPENAI_API_KEY 未设置")
         self.client = OpenAI(api_key=api_key)
         self.model = model
 
     def translate(self, text: str) -> str:
+        """
+        单条文本翻译
+        """
         if not text or not isinstance(text, str) or not text.strip():
             return ""
 
@@ -41,28 +46,34 @@ Text:
             )
             return resp.choices[0].message.content.strip()
         except Exception as e:
-            logger.error(f"[Translator Error] {e}")
+            print(f"[Translator Error] {e}")
             return "[Translation Failed]"
 
-    def safe_translate(self, text: str, max_retries=5, initial_wait=1):
-        """带指数退避的安全翻译"""
-        retry = 0
-        wait = initial_wait
+    def safe_translate(self, text: str, max_retries=5, batch_size=500):
+        """
+        安全翻译，带指数退避
+        对文本过长时分批处理
+        """
+        if not text or not isinstance(text, str):
+            return ""
 
-        while retry < max_retries:
-            try:
-                return self.translate(text)
-            except Exception as e:
-                msg = str(e)
-                # 检测是否为速率限制（HTTP 429）
-                if "429" in msg or "RateLimit" in msg:
+        # 分批处理（按字符数）
+        chunks = [text[i:i+batch_size] for i in range(0, len(text), batch_size)]
+        translated_chunks = []
+
+        for chunk in chunks:
+            retry = 0
+            wait = 1  # 初始等待 1 秒
+            while retry < max_retries:
+                try:
+                    translated = self.translate(chunk)
+                    translated_chunks.append(translated)
+                    break
+                except Exception as e:
                     retry += 1
-                    logger.warning(f"⚠️ 遇到速率限制，等待 {wait} 秒重试 ({retry}/{max_retries})")
+                    print(f"[Translator] 出现错误或速率限制，等待 {wait}s 后重试 ({retry}/{max_retries})")
                     time.sleep(wait)
                     wait *= 2  # 指数退避
-                else:
-                    logger.error(f"❌ 翻译失败: {e}")
-                    return "[Translation Failed]"
-
-        logger.error("❌ 多次重试后翻译仍失败")
-        return "[Translation Failed]"
+                    if retry >= max_retries:
+                        translated_chunks.append("[Translation Failed]")
+        return "".join(translated_chunks)
