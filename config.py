@@ -8,10 +8,9 @@ class Config:
     EMAIL_SENDER = os.getenv("EMAIL_SENDER")
     EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
     RECIPIENT_EMAIL = os.getenv("RECIPIENT_EMAIL")
-    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-
+    
     # Arxiv配置
-    SEARCH_KEYWORDS = os.getenv("SEARCH_KEYWORDS", "Quantum").split(",")
+    SEARCH_KEYWORDS = os.getenv("SEARCH_KEYWORDS", "Rydberg atom").split(",")
     MAX_RESULTS = int(os.getenv("MAX_RESULTS", 20))
     
     # 定时任务配置
