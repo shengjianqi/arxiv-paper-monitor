@@ -1,48 +1,39 @@
 # translator/pipeline.py
 from .local_translator import AcademicTranslator
+import logging
+
+logger = logging.getLogger(__name__)
 
 class TranslationPipeline:
     def __init__(self):
         self.translator = AcademicTranslator()
 
-    def process(self, papers):
-        # 提取所有摘要
-        abstracts = [p['abstract'] for p in papers]
-        zh_abstracts = self.translator.batch_translate(abstracts)
-
-        # 保存翻译
-        for paper, zh in zip(papers, zh_abstracts):
-            paper['zh_abstract'] = zh
-
-        return self.format_html(papers)
-
-    def format_html(self, papers):
-        html = """
-        <html>
-        <head>
-        <style>
-        body { font-family: Helvetica, sans-serif; line-height: 1.5; }
-        .paper { border-bottom:1px solid #ddd; padding:10px 0; }
-        .title { font-weight:bold; font-size:16px; color:#003366; }
-        .authors { font-style:italic; color:#555; }
-        .abstract { margin:8px 0; color:#333; }
-        .links { font-size:14px; }
-        </style>
-        </head>
-        <body>
-        <h2>arXiv Daily Digest — 中文翻译版</h2>
+    def process(self, papers: list) -> str:
         """
-        for p in papers:
-            html += f"""
+        输入 arxiv papers，返回中文邮件正文
+        """
+        abstracts = [p['abstract'] for p in papers]
+        zh_abstracts = self.translator.batch_translate(abstracts, delay=1.5)
+
+        # 构建HTML正文
+        content = ""
+        for i, (paper, zh_abs) in enumerate(zip(papers, zh_abstracts), 1):
+            authors = ', '.join(paper['authors'][:3]) + ('等' if len(paper['authors']) > 3 else '')
+            content += f"""
             <div class="paper">
-              <div class="title">{p['title']}</div>
-              <div class="authors">Authors: {', '.join(p['authors'])}</div>
-              <div class="abstract">{p['zh_abstract']}</div>
-              <div class="links">
-                <a href="{p['pdf_url']}">PDF</a> |
-                <a href="{p['arxiv_url']}">arXiv</a>
-              </div>
+                <div class="title">📄 论文 #{i}: {paper['title']}</div>
+                <div class="meta">
+                    👥 作者: {authors}<br>
+                    📅 发布时间: {paper['published']} | 📚 分类: {paper['primary_category']}
+                </div>
+                <div class="abstract">
+                    <strong>摘要 (中文):</strong><br>
+                    {zh_abs[:500]}...
+                </div>
+                <div class="links">
+                    <a class="link" href="{paper['pdf_url']}">📥 下载PDF</a>
+                    <a class="link" href="{paper['arxiv_url']}">🔗 查看原文</a>
+                </div>
             </div>
             """
-        html += "</body></html>"
-        return html
+        return content
