@@ -49,6 +49,29 @@ class EmailSender:
             logger.error(f"❌ haha: {e}")
             return False
 
+    def send_email(self, subject: str, body: str, html: bool = False):
+    """
+    发送任意文本或HTML邮件（用于翻译邮件、趋势邮件等）
+    """
+    try:
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = subject
+        msg['From'] = self.sender
+        msg['To'] = self.recipient
+
+        if html:
+            msg.attach(MIMEText(body, 'html', 'utf-8'))
+        else:
+            msg.attach(MIMEText(body, 'plain', 'utf-8'))
+
+        self._send_email(msg)
+        logger.info(f"✅ 自定义邮件发送成功 → {self.recipient} | {subject}")
+        return True
+
+    except Exception as e:
+        logger.error(f"❌ 自定义邮件发送失败: {e}")
+        return False
+    
     def _build_no_papers_html(self):
         """构建『无论文』的HTML邮件内容"""
         current_date = datetime.now().strftime('%Y年%m月%d日')
