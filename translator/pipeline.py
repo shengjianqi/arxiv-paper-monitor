@@ -1,16 +1,17 @@
 # translator/pipeline.py
-from translator.llm_translator import AcademicTranslator
+from llm_translator import AcademicTranslator
 
 class TranslationPipeline:
     def __init__(self):
-        self.translator = AcademicTranslator(model="gpt-3.5-turbo")
+        self.translator = AcademicTranslator()
 
     def process(self, papers):
-        translated_results = []
+        """批量处理所有论文，标题+摘要合并"""
+        translated_texts = []
+
         for paper in papers:
-            title_zh = self.translator.safe_translate(paper['title'])
-            abstract_zh = self.translator.safe_translate(paper['abstract'])
-            translated_results.append(
-                f"📄 {title_zh}\n📝 {abstract_zh}\n{'-'*40}\n"
-            )
-        return "\n".join(translated_results)
+            text_to_translate = f"Title:\n{paper['title']}\nAbstract:\n{paper['abstract']}"
+            zh = self.translator.safe_translate(text_to_translate)
+            translated_texts.append(zh)
+
+        return "\n\n".join(translated_texts)
