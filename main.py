@@ -21,7 +21,7 @@ class ArxivDailyDigest:
     def __init__(self):
         self.fetcher = ArxivFetcher()
         self.email_sender = EmailSender()
-        self.translator = TranslationPipeline()  # ✅ 不再传 api_key
+        self.translator = TranslationPipeline()  # 不再传 api_key
 
     def run(self, test_mode=False):
         logger.info("=" * 60)
