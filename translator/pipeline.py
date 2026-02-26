@@ -3,6 +3,25 @@
 from translator.llm_translator import AcademicTranslator
 from translator.email_builder import TranslationEmailBuilder
 
+import time
+import openai
+
+def safe_translate(messages):
+    retries = 0
+    while retries < 5:
+        try:
+            response = openai.ChatCompletion.create(
+                model="gpt-4",
+                messages=messages
+            )
+            return response
+        except openai.error.RateLimitError:
+            wait = 2 ** retries
+            print(f"Rate limit exceeded, retrying in {wait}s...")
+            time.sleep(wait)
+            retries += 1
+    raise Exception("Exceeded retry limit")
+
 class TranslationPipeline:
 
     def __init__(self, api_key):
