@@ -26,7 +26,7 @@ class TranslationPipeline:
 
         for p in papers_raw:
             title_en = p["title"]
-            abstract_en = p["abstract", ""]
+            abstract_en = p.get("abstract", "")
 
             title_zh = self.translator.safe_translate(title_en)
             abstract_zh = self.translator.safe_translate(abstract_en)
