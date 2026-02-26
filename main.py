@@ -10,7 +10,7 @@ from translator.pipeline import TranslationPipeline
 from config import Config
 
 def run():
-    papers = fetch_papers()
+    papers = ArxivFetcher_papers()
     pipeline = TranslationPipeline()  # 不再传 api_key
     translated_body = pipeline.process(papers)
     print(translated_body)
