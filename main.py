@@ -1,3 +1,5 @@
+# main.py
+
 import os
 from datetime import datetime
 import logging
@@ -5,19 +7,9 @@ import logging
 from config import Config
 from arxiv_fetcher import ArxivFetcher
 from email_sender import EmailSender
-
 from translator.pipeline import TranslationPipeline
-from config import Config
 
-def run():
-    papers = ArxivFetcher_papers()
-    pipeline = TranslationPipeline()  # 不再传 api_key
-    translated_body = pipeline.process(papers)
-    print(translated_body)
-
-if __name__ == "__main__":
-    run()
-
+# -------------------- logging --------------------
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
@@ -25,11 +17,12 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-
+# -------------------- Arxiv Digest --------------------
 class ArxivDailyDigest:
     def __init__(self):
         self.fetcher = ArxivFetcher()
         self.email_sender = EmailSender()
+        self.translator = TranslationPipeline()  # ✅ 不再传 api_key
 
     def run(self, test_mode=False):
         logger.info("=" * 60)
@@ -39,40 +32,33 @@ class ArxivDailyDigest:
             days_back = 0 if test_mode else 1
             papers = self.fetcher.fetch_recent_papers(days_back=days_back)
 
-            summaries = []
-            if papers:
-                summaries = [self.fetcher.generate_summary(p) for p in papers]
-                logger.info(f"找到 {len(papers)} 篇相关论文")
-            else:
+            if not papers:
                 logger.info("今日没有找到相关论文")
-
-            # 发送英文摘要
-            success = self.email_sender.send_digest(papers, summaries)
-
-            if not success:
-                logger.error("❌ 英文摘要邮件发送失败")
                 return
 
-            logger.info("✅ 英文摘要邮件发送成功")
+            # 生成英文摘要
+            summaries = [self.fetcher.generate_summary(p) for p in papers]
+            logger.info(f"找到 {len(papers)} 篇相关论文")
+
+            # 发送英文摘要邮件
+            success = self.email_sender.send_digest(papers, summaries)
+            if success:
+                logger.info("✅ 英文摘要邮件发送成功")
+            else:
+                logger.error("❌ 英文摘要邮件发送失败")
 
             # ===== 中文翻译邮件 =====
-            if papers:
-                logger.info(f"📘 翻译模块触发，论文数 = {len(papers)}")
+            logger.info(f"📘 翻译模块触发，论文数 = {len(papers)}")
+            translated_body = self.translator.process(papers)
 
-                from translator.pipeline import TranslationPipeline
-                pipeline = TranslationPipeline(api_key=Config.OPENAI_API_KEY)
-
-                translated_body = pipeline.process(papers)
-
-                zh_success = self.email_sender.send_email(
-                    subject="arXiv Daily Digest — 中文翻译版",
-                    body=translated_body
-                )
-
-                if zh_success:
-                    logger.info("✅ 中文翻译邮件发送成功")
-                else:
-                    logger.error("❌ 中文翻译邮件发送失败")
+            zh_success = self.email_sender.send_email(
+                subject="arXiv Daily Digest — 中文翻译版",
+                body=translated_body
+            )
+            if zh_success:
+                logger.info("✅ 中文翻译邮件发送成功")
+            else:
+                logger.error("❌ 中文翻译邮件发送失败")
 
         except Exception as e:
             logger.exception(f"任务执行失败: {e}")
@@ -85,6 +71,7 @@ class ArxivDailyDigest:
         logger.info("📤 单次任务执行完毕，进程将退出")
 
 
+# -------------------- Main --------------------
 def main():
     try:
         Config.validate()
