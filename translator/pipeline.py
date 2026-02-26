@@ -1,5 +1,5 @@
 # translator/pipeline.py
-from llm_translator import AcademicTranslator
+from .llm_translator import AcademicTranslator  # ✅ 使用相对导入
 
 class TranslationPipeline:
     def __init__(self):
