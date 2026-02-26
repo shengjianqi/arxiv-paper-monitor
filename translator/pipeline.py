@@ -1,89 +1,81 @@
 # translator/pipeline.py
 
+import time
+import openai
+from openai.error import RateLimitError, APIError, Timeout
 from translator.llm_translator import AcademicTranslator
 from translator.email_builder import TranslationEmailBuilder
 
-import time
-import openai
 
-def safe_translate(messages, max_retries=5):
+def safe_translate(messages):
     """
-    使用指数退避策略安全调用 OpenAI ChatCompletion
-    messages: [{"role": "user", "content": "..."}]
+    安全调用 OpenAI API 翻译文本，带重试机制
+    messages: List[dict] [{"role": "user", "content": "..."}]
+    返回: 模型生成的文本
     """
     retries = 0
-    while retries < max_retries:
+    while retries < 5:
         try:
-            response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",  # 可根据需要换 gpt-4
+            response = openai.chat.completions.create(
+                model="gpt-3.5-turbo",  # 使用 GPT-3.5
                 messages=messages
             )
-            return response
-        except openai.error.RateLimitError:
+            return response.choices[0].message.content
+        except (RateLimitError, APIError, Timeout) as e:
             wait = 2 ** retries
-            print(f"Rate limit exceeded, retrying in {wait}s...")
+            print(f"Rate limit/API error: {e}, retrying in {wait}s...")
             time.sleep(wait)
             retries += 1
     raise Exception("Exceeded retry limit")
 
+
 class TranslationPipeline:
 
-    def __init__(self, api_key, batch_size=5, delay_between_batches=0.5):
+    def __init__(self, api_key):
+        """
+        初始化翻译管线
+        """
+        openai.api_key = api_key
         self.translator = AcademicTranslator(api_key)
         self.builder = TranslationEmailBuilder()
-        self.batch_size = batch_size
-        self.delay_between_batches = delay_between_batches
 
     def process(self, papers_raw):
         """
-        papers_raw: [
-            {"title": "...", "abstract": "...", "link": "..."}
+        处理论文列表，翻译标题和摘要，并生成邮件内容
+        papers_raw: list of dicts
+        示例:
+        [
+            {
+                "title": "Paper title",
+                "abstract": "Paper abstract",
+                "link": "https://arxiv.org/abs/xxxx"
+            },
+            ...
         ]
-        返回 email_body
+        返回: 邮件正文字符串
         """
         results = []
 
-        # 将标题和摘要分批处理
-        for i in range(0, len(papers_raw), self.batch_size):
-            batch = papers_raw[i:i+self.batch_size]
+        for p in papers_raw:
+            title_en = p.get("title", "")
+            abstract_en = p.get("abstract", "")
 
-            # 构建批量翻译内容
-            messages = [{"role": "user",
-                         "content": "Translate the following titles and abstracts to Chinese, "
-                                    "return as JSON list with 'title_zh' and 'abstract_zh':\n" +
-                                    "\n".join(
-                                        f"{idx} Title: {p['title']}\nAbstract: {p.get('abstract','')}"
-                                        for idx, p in enumerate(batch, start=1)
-                                    )}]
-            # 调用 safe_translate
-            response = safe_translate(messages)
-            translation_text = response['choices'][0]['message']['content']
+            # 调用安全翻译
+            title_zh = self.translator.safe_translate([
+                {"role": "user", "content": f"请将以下英文标题翻译成中文:\n{title_en}"}
+            ])
+            abstract_zh = self.translator.safe_translate([
+                {"role": "user", "content": f"请将以下英文摘要翻译成中文:\n{abstract_en}"}
+            ])
 
-            # 尝试解析为 JSON（假设返回格式可解析）
-            import json
-            try:
-                translations = json.loads(translation_text)
-            except json.JSONDecodeError:
-                # 返回非标准 JSON，则按换行拆分（最保底）
-                lines = [line.strip() for line in translation_text.split("\n") if line.strip()]
-                translations = []
-                for idx, p in enumerate(batch):
-                    t = lines[idx*2] if idx*2 < len(lines) else ""
-                    a = lines[idx*2+1] if idx*2+1 < len(lines) else ""
-                    translations.append({"title_zh": t, "abstract_zh": a})
+            results.append({
+                "title_en": title_en,
+                "title_zh": title_zh,
+                "abstract_en": abstract_en,
+                "abstract_zh": abstract_zh,
+                "url": p.get("link", "")
+            })
 
-            # 添加到结果
-            for p, trans in zip(batch, translations):
-                results.append({
-                    "title_en": p["title"],
-                    "title_zh": trans.get("title_zh", ""),
-                    "abstract_en": p.get("abstract",""),
-                    "abstract_zh": trans.get("abstract_zh", ""),
-                    "url": p.get("link", "")
-                })
-
-            # 批之间延迟，降低 429 概率
-            time.sleep(self.delay_between_batches)
-
+        # 构建邮件内容
         email_body = self.builder.build(results)
         return email_body
