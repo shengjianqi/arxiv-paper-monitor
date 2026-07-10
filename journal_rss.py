@@ -17,13 +17,14 @@ logger = logging.getLogger(__name__)
 # 格式: (显示名称, RSS URL)
 JOURNAL_RSS_FEEDS: List[tuple] = [
     # --- APS (Physical Review) ---
-    ("PRL", "https://journals.aps.org/prl/rss"),
-    ("PRA", "https://journals.aps.org/pra/rss"),
-    ("PRB", "https://journals.aps.org/prb/rss"),
-    ("PRX", "https://journals.aps.org/prx/rss"),
-    ("PRResearch", "https://journals.aps.org/prresearch/rss"),
+    # APS RSS 需要 feeds.aps.org 域名，journals.aps.org 会返回 403
+    ("PRL", "https://feeds.aps.org/rss/recent/prl.xml"),
+    ("PRA", "https://feeds.aps.org/rss/recent/pra.xml"),
+    ("PRB", "https://feeds.aps.org/rss/recent/prb.xml"),
+    ("PRX", "https://feeds.aps.org/rss/recent/prx.xml"),
+    ("PRResearch", "https://feeds.aps.org/rss/recent/prresearch.xml"),
 
-    # --- Nature 系列 ---
+    # --- Nature 系列 (已验证可用) ---
     ("Nature", "https://www.nature.com/nature.rss"),
     ("Nature Physics", "https://www.nature.com/nphys.rss"),
     ("Nature Photonics", "https://www.nature.com/nphoton.rss"),
@@ -33,22 +34,20 @@ JOURNAL_RSS_FEEDS: List[tuple] = [
     ("Nature Communications", "https://www.nature.com/ncomms.rss"),
     ("Nature Quantum Info", "https://www.nature.com/npjqi.rss"),
 
-    # --- Science 系列 ---
+    # --- Science 系列 (已验证可用) ---
     ("Science", "https://www.science.org/rss/current.xml"),
     ("Science Advances", "https://www.science.org/rss/advances_current.xml"),
 
-    # --- Optica 系列 ---
-    ("Optica", "https://opg.optica.org/optica/rss.cfm"),
-    ("Optics Letters", "https://opg.optica.org/ol/rss.cfm"),
-    ("Optics Express", "https://opg.optica.org/oe/rss.cfm"),
-    ("Photonics Research", "https://opg.optica.org/prj/rss.cfm"),
-    ("JOSA B", "https://opg.optica.org/josab/rss.cfm"),
+    # --- Optica 系列 (GitHub Actions IP 可能被限) ---
+    # 注意: 绝大多数 Optica 论文已同步到 arXiv (physics.optics)
+    ("Optica", "https://opg.optica.org/rss/optica.xml"),
+    ("Optics Letters", "https://opg.optica.org/rss/ol.xml"),
+    ("Optics Express", "https://opg.optica.org/rss/oe.xml"),
 
-    # --- AIP (APL) 系列 ---
-    ("APL", "https://pubs.aip.org/aip/apl/rss"),
-    ("APL Photonics", "https://pubs.aip.org/aip/app/rss"),
-    ("J. Appl. Phys.", "https://pubs.aip.org/aip/jap/rss"),
-    ("Appl. Phys. Rev.", "https://pubs.aip.org/aip/apr/rss"),
+    # --- AIP / APL 系列 (GitHub Actions IP 可能被限) ---
+    # 注意: 绝大多数 AIP 论文已同步到 arXiv
+    ("APL", "https://pubs.aip.org/rss/apl.xml"),
+    ("APL Photonics", "https://pubs.aip.org/rss/app.xml"),
 ]
 
 
@@ -64,11 +63,11 @@ class JournalRSSFetcher:
             resp = requests.get(
                 url,
                 timeout=30,
-                headers={'User-Agent': 'ArxivDailyDigest/1.0'}
+                headers={'User-Agent': 'Mozilla/5.0 (compatible; ArxivDigest/1.0; +https://github.com/balabalabalalaba/arxiv-paper-monitor)'}
             )
             resp.raise_for_status()
         except requests.RequestException as e:
-            logger.debug(f"  {journal_name}: RSS 获取失败 ({e})")
+            logger.warning(f"  {journal_name}: RSS 获取失败 — {e}")
             return []
 
         feed = feedparser.parse(resp.content)
