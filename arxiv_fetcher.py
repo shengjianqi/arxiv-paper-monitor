@@ -110,7 +110,7 @@ class ArxivFetcher:
                 return True
         return False
 
-    def fetch_recent_papers(self, days_back: int = 1) -> List[Dict]:
+    def fetch_recent_papers(self, days_back: int = 2) -> List[Dict]:
         """
         获取最近几天的论文
 
