@@ -118,7 +118,7 @@ class EmailSender:
         
         return f"""
         {'='*60}
-        ARXIV 里德堡原子论文监控报告
+        ARXIV 量子论文监控报告
         {'='*60}
         
         报告日期：{current_date}
